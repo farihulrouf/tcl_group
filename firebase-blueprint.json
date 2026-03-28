@@ -1,0 +1,61 @@
+{
+  "entities": {
+    "Product": {
+      "title": "Product",
+      "description": "Inventory item with stock tracking",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string", "description": "Unique SKU for the product" },
+        "name": { "type": "string", "description": "Product name" },
+        "description": { "type": "string", "description": "Product description" },
+        "physicalStock": { "type": "number", "description": "Total stock in warehouse" },
+        "availableStock": { "type": "number", "description": "Stock available for new orders" }
+      },
+      "required": ["sku", "name", "physicalStock", "availableStock"]
+    },
+    "StockIn": {
+      "title": "Stock In",
+      "description": "Incoming stock transaction",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string" },
+        "quantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["CREATED", "IN_PROGRESS", "DONE", "CANCELLED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sku", "quantity", "status", "createdAt"]
+    },
+    "StockOut": {
+      "title": "Stock Out",
+      "description": "Outgoing stock transaction",
+      "type": "object",
+      "properties": {
+        "sku": { "type": "string" },
+        "quantity": { "type": "number" },
+        "status": { "type": "string", "enum": ["DRAFT", "IN_PROGRESS", "DONE", "CANCELLED"] },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["sku", "quantity", "status", "createdAt"]
+    },
+    "InventoryLog": {
+      "title": "Inventory Log",
+      "description": "History of stock changes",
+      "type": "object",
+      "properties": {
+        "type": { "type": "string", "enum": ["IN", "OUT", "ADJUST"] },
+        "sku": { "type": "string" },
+        "quantity": { "type": "number" },
+        "previousStock": { "type": "number" },
+        "newStock": { "type": "number" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["type", "sku", "quantity", "previousStock", "newStock", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/products/{sku}": { "schema": "Product", "description": "Collection of products" },
+    "/stockIn/{id}": { "schema": "StockIn", "description": "Stock in transactions" },
+    "/stockOut/{id}": { "schema": "StockOut", "description": "Stock out transactions" },
+    "/inventoryLogs/{id}": { "schema": "InventoryLog", "description": "Audit logs" }
+  }
+}

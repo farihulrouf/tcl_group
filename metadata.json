@@ -1,0 +1,5 @@
+{
+  "name": "Smart Inventory Core System",
+  "description": "A professional inventory management system with Stock In/Out workflows, two-phase commitment for stock allocation, and real-time inventory tracking.",
+  "requestFramePermissions": []
+}

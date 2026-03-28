@@ -1,0 +1,45 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isValidProduct(data) {
+      return data.sku is string && data.sku.size() > 0 &&
+             data.name is string && data.name.size() > 0 &&
+             data.physicalStock is number && data.availableStock is number;
+    }
+
+    function isValidStockIn(data) {
+      return data.sku is string && data.quantity is number && data.quantity > 0 &&
+             data.status in ['CREATED', 'IN_PROGRESS', 'DONE', 'CANCELLED'];
+    }
+
+    function isValidStockOut(data) {
+      return data.sku is string && data.quantity is number && data.quantity > 0 &&
+             data.status in ['DRAFT', 'IN_PROGRESS', 'DONE', 'CANCELLED'];
+    }
+
+    match /products/{sku} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidProduct(request.resource.data);
+    }
+
+    match /stockIn/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidStockIn(request.resource.data);
+    }
+
+    match /stockOut/{id} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidStockOut(request.resource.data);
+    }
+
+    match /inventoryLogs/{id} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated();
+    }
+  }
+}
