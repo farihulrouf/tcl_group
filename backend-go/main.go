@@ -49,6 +49,9 @@ var db *gorm.DB
 func initDB() {
 	var err error
 	// Menggunakan SQLite sesuai permintaan
+	// Untuk menggunakan PostgreSQL, ganti baris di bawah dengan:
+	// dsn := "host=localhost user=gorm password=gorm dbname=gorm port=5432 sslmode=disable TimeZone=Asia/Jakarta"
+	// db, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	db, err = gorm.Open(sqlite.Open("inventory.db"), &gorm.Config{})
 	if err != nil {
 		log.Fatal("Failed to connect to database:", err)

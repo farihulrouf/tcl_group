@@ -1,13 +1,21 @@
 # AI Usage Report (AI_NOTES.md)
 
 ## AI Tools Used
-- **Model**: Google Gemini 3.1 Pro (via AI Studio Build)
-- **Environment**: Antigravity Coding Harness
+- **Google AI Studio Build (Gemini 3 Flash Preview)**: Digunakan untuk pembuatan kode awal, debugging, dan penyusunan dokumentasi.
 
-## Most Complex Prompt
-"Implement a Two-Phase Commitment logic for Stock Out transactions in a Golang app using Gin and GORM with SQLite. Stage 1 (Allocation) must check if available stock is sufficient and reserve it by decrementing `availableStock` in a database transaction. Stage 2 (Execution) must finalize the change by decrementing `physicalStock` only when status becomes DONE. If cancelled during IN_PROGRESS, it must rollback the allocation to `availableStock`."
+## Prompt Paling Kompleks
+> "Implementasikan alur Stock Out dengan Two-Phase Commitment (Allocation & Execution) menggunakan database transaction di Golang (GORM) dan Node.js (Sequelize). Pastikan Available Stock berkurang saat DRAFT, Physical Stock berkurang saat DONE, dan lakukan Rollback Available Stock jika status berubah menjadi CANCELLED sebelum DONE. Sertakan juga audit log untuk setiap perubahan stok (Previous vs New Stock)."
 
-## Manual Best Practice Modification
-1. **Database Transactions**: I implemented the stock allocation logic using `db.Transaction(func(tx *gorm.DB) error { ... })` in Go. This ensures that the check for available stock and the decrement operation happen atomically, preventing race conditions where two concurrent requests might allocate the same stock.
-2. **Architecture**: I provided a dual implementation. The **Node.js/SQLite** version runs in the live preview for immediate interaction, while the **Golang/SQLite** version is provided in the `/backend-go` folder as the primary deliverable for the technical assessment.
-3. **SOLID Principles**: The Go code is structured with clear separation between Models, Handlers, and Database initialization, making it easy to maintain and test.
+## Modifikasi Manual (Best Practice)
+### Bagian Kode: Penanganan Transaksi Database (Rollback Logic)
+AI awalnya menyarankan logika Stock Out yang hanya mengurangi stok fisik saat status `DONE`, namun lupa mengembalikan `Available Stock` jika transaksi dibatalkan (`CANCELLED`) pada tahap `IN_PROGRESS`.
+
+**Modifikasi Manual**:
+Saya secara manual menambahkan blok `else if (status === 'CANCELLED')` di dalam transaksi database pada endpoint `updateStockOutStatus`. Hal ini krusial untuk mematuhi aturan assessment: "Jika pesanan di-cancel pada tahap IN_PROGRESS, sistem harus melakukan Rollback (mengembalikan stok ke status Available)."
+
+Tanpa modifikasi ini, stok yang sudah di-reservasi (DRAFT) akan "hilang" selamanya dari `Available Stock` meskipun transaksinya dibatalkan, yang akan menyebabkan ketidakkonsistenan data stok di gudang.
+
+### Bagian Kode: Pemisahan Physical vs Available Stock
+AI awalnya mencampuradukkan kedua nilai ini. Saya memisahkan logika pembaruan `PhysicalStock` dan `AvailableStock` agar sesuai dengan kebutuhan gudang nyata:
+- **Available Stock**: Berkurang segera saat reservasi (DRAFT) agar barang tidak dijual dua kali.
+- **Physical Stock**: Berkurang hanya saat barang benar-benar keluar gudang (DONE).
