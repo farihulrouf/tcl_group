@@ -69,10 +69,7 @@ Pendekatan ini dipilih untuk:
 - Node.js (v18+)
 - Go (v1.21+)
 
----
-
-### 🔧 Backend (Go)
-
-1. Masuk ke direktori:
-   ```bash
-   cd backend-go
+### Jalankan Aplikasi
+```bash
+cd backend-go && cp .env.example .env && go run main.go
+cd frontend && npm install && npm run dev
